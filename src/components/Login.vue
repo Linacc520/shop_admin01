@@ -1,18 +1,18 @@
 <template>
  <div class="login">
    <el-form ref="form" :rules="rules" :model="form" label-width="80px" status-icon>
-      <img src="../assets/avatar.jpg" alt="">
-     <el-form-item label="用户名" prop="username">
-       <el-input v-model="form.username"></el-input>
-     </el-form-item>
-     <el-form-item label="密码" prop="password">
-       <el-input v-model="form.password" type="password"></el-input>
-     </el-form-item>
-     <el-form-item>
-       <el-button type="primary" @click="onSubmit">登录</el-button>
-       <el-button>重置</el-button>
-     </el-form-item>
-</el-form>
+        <img src="../assets/avatar.jpg" alt="">
+      <el-form-item label="用户名" prop="username">
+        <el-input v-model="form.username"></el-input>
+      </el-form-item>
+      <el-form-item label="密码" prop="password">
+        <el-input v-model="form.password" type="password"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="login">登录</el-button>
+        <el-button @click="resetForm">重置</el-button>
+      </el-form-item>
+  </el-form>
  </div>
 </template>
 
@@ -37,6 +37,21 @@ export default {
           { min: 6, max: 12, message: '长度在 6 到 12 个字符', trigger: 'change' }
         ]
       }
+    }
+  },
+  methods: {
+    resetForm () {
+    // 获取表单组件，调用方法
+      this.$refs.form.resetFields()
+    },
+    login () {
+      this.$refs.form.validate(isValid => {
+        if (isValid) {
+          console.log('发送ajax请求')
+        } else {
+          return false
+        }
+      })
     }
   }
 }
