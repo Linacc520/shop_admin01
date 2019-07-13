@@ -22,8 +22,8 @@ export default {
   data () {
     return {
       form: {
-        username: '',
-        password: ''
+        username: 'admin',
+        password: '123456'
       },
       rules: {
         username: [
@@ -50,13 +50,17 @@ export default {
         if (!isValid) return false
         // 校验成功,发送ajax请求
         axios.post('http://localhost:8888/api/private/v1/login', this.form).then(res => {
-          console.log(11)
           console.log(res.data)
-          const { status, msg } = res.data
+          // 解构
+          const { status, msg } = res.data.meta
           if (status === 200) {
-            console.log('登录成功')
+            this.$message({
+              message: '登录成功',
+              type: 'success',
+              duration: 1000
+            })
           } else {
-            console.log('登录失败', msg)
+            this.$message.error(msg)
           }
         })
       })
