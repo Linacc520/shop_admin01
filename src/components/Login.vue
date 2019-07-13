@@ -17,6 +17,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
   data () {
     return {
@@ -46,11 +47,18 @@ export default {
     },
     login () {
       this.$refs.form.validate(isValid => {
-        if (isValid) {
-          console.log('发送ajax请求')
-        } else {
-          return false
-        }
+        if (!isValid) return false
+        // 校验成功,发送ajax请求
+        axios.post('http://localhost:8888/api/private/v1/login', this.form).then(res => {
+          console.log(11)
+          console.log(res.data)
+          const { status, msg } = res.data
+          if (status === 200) {
+            console.log('登录成功')
+          } else {
+            console.log('登录失败', msg)
+          }
+        })
       })
     }
   }
