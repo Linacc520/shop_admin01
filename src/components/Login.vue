@@ -52,7 +52,7 @@ export default {
         axios.post('http://localhost:8888/api/private/v1/login', this.form).then(res => {
           console.log(res.data)
           // 解构
-          const { meta: { status, msg }, data: { token } } = res.data
+          const { meta: { status, msg }, data } = res.data
           if (status === 200) {
             this.$message({
               message: '登录成功',
@@ -61,7 +61,7 @@ export default {
             })
 
             // 存储token
-            localStorage.setItem('token', token)
+            localStorage.setItem('token', data.token)
             // 跳转到首页组件
 
             this.$router.push('/index')
