@@ -9,8 +9,8 @@ Vue.use(VueRouter)
 const router = new VueRouter({
   routes: [
     { path: '/', redirct: '/index' },
-    { path: '/index', component: Index },
-    { path: '/login', component: Login }
+    { path: '/index', component: Index, name: 'index' },
+    { path: '/login', component: Login, name: 'login' }
   ]
 })
 router.beforeEach((to, form, next) => {
