@@ -7,10 +7,10 @@
     </el-breadcrumb>
     <!-- 搜索栏 -->
     <div style="margin: 15px 0;">
-      <el-input placeholder="请输入内容" v-model="query" class="input-with-select">
+      <el-input placeholder="请输入内容" v-model="query" class="input-with-select" style="width:300px">
         <el-button slot="append" icon="el-icon-search" @click="queryUser"></el-button>
       </el-input>
-      <el-button type="success" plain style="margin-left: 30px">添加用戶</el-button>
+      <el-button type="success" plain style="margin-left: 30px" @click="showAddDialog">添加用戶</el-button>
     </div>
     <!-- 表格 -->
     <!--
@@ -28,12 +28,17 @@
       <el-table-column prop="mobile" label="电话"></el-table-column>
       <el-table-column prop="mg_state" label="用户状态">
         <template v-slot:default="{ row }">
-          <el-switch v-model="row.mg_state" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+          <el-switch
+          v-model="row.mg_state"
+          active-color="#13ce66"
+          inactive-color="#ff4949"
+          @change="changeState(row)"
+          ></el-switch>
         </template>
       </el-table-column>
       <el-table-column label="操作">
         <template v-slot:default="{ row }">
-          <el-button type="primary" icon="el-icon-edit" plain circle size="small"></el-button>
+          <el-button type="primary" icon="el-icon-edit" plain circle size="small" @click="showEditDialog(row)"></el-button>
           <el-button
             @click="deleteUser(row.id)"
             type="danger"
@@ -57,6 +62,52 @@
       layout="total, sizes, prev, pager, next, jumper"
       :total="total"
     ></el-pagination>
+
+    <!-- 对话框 -->
+    <el-dialog
+    title="添加用户"
+    :visible.sync="editDialogVisible"
+    width="40%">
+    <el-form ref="addForm" :model="addForm" :rules="rules" label-width="80px" status-icon>
+      <el-form-item label="用户名" prop="username">
+        <el-input placeholder="请输入用户名" v-model="addForm.username"></el-input>
+      </el-form-item>
+       <el-form-item label="密码" prop="password">
+        <el-input placeholder="请输入用密码" v-model="addForm.password"></el-input>
+      </el-form-item>
+       <el-form-item label="邮箱" prop="email">
+        <el-input placeholder="请输入用户邮箱" v-model="addForm.email"></el-input>
+      </el-form-item>
+       <el-form-item label="手机" prop="mobile">
+        <el-input placeholder="请输入用户手机" v-model="addForm.mobile"></el-input>
+      </el-form-item>
+    </el-form>
+    <span slot="footer" class="dialog-footer">
+      <el-button @click="editDialogVisible = false">取 消</el-button>
+      <el-button type="primary" @click="addUser">确 定</el-button>
+    </span>
+    </el-dialog>
+
+     <el-dialog
+    title="修改用户"
+    :visible.sync="editDialogVisible"
+    width="40%">
+    <el-form ref="editForm" :model="editForm" :rules="rules" label-width="80px" status-icon>
+      <el-form-item label="用户名" prop="username">
+        <el-tag type="info">{{editForm.username}}</el-tag>
+      </el-form-item>
+       <el-form-item label="邮箱" prop="email">
+        <el-input placeholder="请输入用户邮箱" v-model="editForm.email"></el-input>
+      </el-form-item>
+       <el-form-item label="手机" prop="mobile">
+        <el-input placeholder="请输入用户手机" v-model="editForm.mobile"></el-input>
+      </el-form-item>
+    </el-form>
+    <span slot="footer" class="dialog-footer">
+      <el-button @click="editDialogVisible = false">取 消</el-button>
+      <el-button type="primary" @click="addUser">确 定</el-button>
+    </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -69,7 +120,40 @@ export default {
       query: '',
       pagenum: 1,
       pagesize: 2,
-      total: 0
+      total: 0,
+      // 添加用户的对话框,默认是隐藏
+      addDialogVisible: false,
+      // 添加表单对象
+      addForm: {
+        username: '',
+        password: '',
+        email: '',
+        mobile: ''
+      },
+      // 表单校验
+      rules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          { min: 3, max: 6, message: '用户的长度必须3-6位', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { min: 6, max: 12, message: '用户的长度必须6-12位', trigger: 'blur' }
+        ],
+        email: [
+          { type: 'email', message: '请输入有效的邮箱', trigger: 'blur' }
+        ],
+        mobile: [
+          { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号', trigger: 'blur' }
+        ]
+      },
+      editDialogVisible: false,
+      editForm: {
+        id: '',
+        email: '',
+        mobile: '',
+        username: ''
+      }
     }
   },
   created () {
@@ -140,6 +224,54 @@ export default {
       }).catch(() => {
         this.$message('操作取消')
       })
+    },
+    changeState ({ id, mg_state: state }) {
+      this.axios.put(`users/${id}/state/${state}`).then(res => {
+        const { status, msg } = res.meta
+        if (status === 200) {
+          // 成功
+          this.$message.success('修改状态成功')
+          // 要不要重新渲染
+          this.getUserList()
+        } else {
+          this.$message.error(msg)
+        }
+      })
+    },
+    showAddDialog () {
+      console.log(1)
+      this.addDialogVisible = true
+    },
+    addUser () {
+      this.$refs.addForm.validate(valid => {
+        if (!valid) return false
+        // 发送ajax 请求
+        this.axios.post('users', this.addForm).then(res => {
+          const { status, msg } = res.meta
+          if (status === 201) {
+            // 提示消息
+            this.$message.success('添加用户成功')
+            // 重置表单
+            this.$refs.addForm.resetFields()
+            // 隐藏对话框
+            this.addDialogVisible = false
+            // 重新渲染
+            this.total++
+            this.pagenum = Math.ceil(this.total / this.pagesize)
+            this.getUserList()
+          } else {
+            this.$Message.error(msg)
+          }
+        })
+      })
+    },
+    showEditDialog (user) {
+      this.editDialogVisible = true
+      // this.editForm.id = user.id
+      // this.editForm.email = user.email
+      // this.editForm.mobile = user.mobile
+      // this.editForm.username = user.username
+      this.editForm = { ...user }
     }
   }
 }
@@ -151,8 +283,5 @@ export default {
   line-height: 40px;
   background-color: #ddd;
   padding-left: 10px;
-}
-.el-input {
-  width: 300px;
 }
 </style>
