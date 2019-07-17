@@ -66,7 +66,7 @@
     <!-- 对话框 -->
     <el-dialog
     title="添加用户"
-    :visible.sync="editDialogVisible"
+    :visible.sync="addDialogVisible"
     width="40%">
     <el-form ref="addForm" :model="addForm" :rules="rules" label-width="80px" status-icon>
       <el-form-item label="用户名" prop="username">
@@ -83,7 +83,7 @@
       </el-form-item>
     </el-form>
     <span slot="footer" class="dialog-footer">
-      <el-button @click="editDialogVisible = false">取 消</el-button>
+      <el-button @click="addDialogVisible = false">取 消</el-button>
       <el-button type="primary" @click="addUser">确 定</el-button>
     </span>
     </el-dialog>
@@ -105,7 +105,7 @@
     </el-form>
     <span slot="footer" class="dialog-footer">
       <el-button @click="editDialogVisible = false">取 消</el-button>
-      <el-button type="primary" @click="addUser">确 定</el-button>
+      <el-button type="primary" @click="editUser">确 定</el-button>
     </span>
     </el-dialog>
   </div>
@@ -272,6 +272,28 @@ export default {
       // this.editForm.mobile = user.mobile
       // this.editForm.username = user.username
       this.editForm = { ...user }
+    },
+    editUser () {
+      this.$refs.editForm.validate(valid => {
+        if (!valid) return false
+        // 发送 ajax 请求
+        const { id, email, mobile } = this.editForm
+        this.axios.put(`users/${id}`, { email, mobile }).then(res => {
+          console.log(11)
+          const { status, msg } = res.meta
+          if (status === 200) {
+            this.$message.success('修改成功')
+            // 重置表单
+            this.$refs.editForm.resetFields()
+            // 关闭模态框
+            this.editDialogVisible = false
+            // 重新渲染
+            this.getUserList()
+          } else {
+            this.$message.error(msg)
+          }
+        })
+      })
     }
   }
 }
