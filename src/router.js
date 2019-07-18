@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Login from './components/Login.vue'
 import Index from './components/Index.vue'
+import Users from './components/Users.vue'
 
 // 只要是模块化的环境,vue 要使用插件,就必须要使用vue.use方法
 Vue.use(VueRouter)
@@ -9,7 +10,14 @@ Vue.use(VueRouter)
 const router = new VueRouter({
   routes: [
     { path: '/', redirct: '/index' },
-    { path: '/index', component: Index, name: 'index' },
+    {
+      path: '/index',
+      component: Index,
+      name: 'index',
+      children: [
+        { path: '/users', name: 'users', component: Users }
+      ]
+    },
     { path: '/login', component: Login, name: 'login' }
   ]
 })

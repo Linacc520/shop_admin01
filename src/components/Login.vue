@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+// import axios from 'axios'
 export default {
   data () {
     return {
@@ -45,31 +45,33 @@ export default {
     // 获取表单组件，调用方法
       this.$refs.form.resetFields()
     },
-    login () {
-      this.$refs.form.validate(isValid => {
-        if (!isValid) return false
-        // 校验成功,发送ajax请求
-        axios.post('http://localhost:8888/api/private/v1/login', this.form).then(res => {
-          console.log(res.data)
-          // 解构
-          const { meta: { status, msg }, data } = res.data
-          if (status === 200) {
-            this.$message({
-              message: '登录成功',
-              type: 'success',
-              duration: 1000
-            })
+    async login () {
+      // 对表单进行校验
+      // 如果表单校验成功,会走resolve,如果失败,走reject
+      try {
+        // 等待表单校验成功
+        await this.$refs.form.validate()
+        // 从成功的结果中解构出 meta 和 data
+        // const res = await this.axios.post('login', this.form)
+        const { meta, data } = await this.axios.post('login', this.form)
+        if (meta.status === 200) {
+          this.$message({
+            message: '登录成功',
+            type: 'success',
+            duration: 1000
+          })
 
-            // 存储token
-            localStorage.setItem('token', data.token)
-            // 跳转到首页组件
+          // 存储token
+          localStorage.setItem('token', data.token)
+          // 跳转到首页组件
 
-            this.$router.push('/index')
-          } else {
-            this.$message.error(msg)
-          }
-        })
-      })
+          this.$router.push('/index')
+        } else {
+          this.$message.error(meta.msg)
+        }
+      } catch (e) {
+        return false
+      }
     }
   }
 }
