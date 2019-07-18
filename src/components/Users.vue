@@ -40,7 +40,7 @@
         <template v-slot:default="{ row }">
           <el-button type="primary" icon="el-icon-edit" plain circle size="small" @click="showEditDialog(row)"></el-button>
           <el-button
-            @click="deleteUser(row.id)"
+            @click="deleteUser(row.id, $event)"
             type="danger"
             icon="el-icon-delete"
             plain
@@ -194,7 +194,8 @@ export default {
       this.pagenum = 1
       this.getUserList()
     },
-    async deleteUser (id) {
+    async deleteUser (id, e) {
+      console.log(e.target)
       try {
         // 等待点击确认按钮
         await this.$confirm('亲,你确定要删除吗?', '温馨提示', {
@@ -218,6 +219,8 @@ export default {
       } catch (e) {
         this.$message('取消删除')
       }
+      // 失去焦点
+      e.target.blur()
     },
     async changeState ({ id, mg_state: state }) {
       const res = await this.axios.put(`users/${id}/state/${state}`)
@@ -263,49 +266,6 @@ export default {
       } catch (e) {
         return false
       }
-      // this.$refs.addForm.validate(valid => {
-      //   if (!valid) return false
-      //   // 发送ajax 请求
-      //   this.axios.post('users', this.addForm).then(res => {
-      //     const { status, msg } = res.meta
-      //     if (status === 201) {
-      //       // 提示消息
-      //       this.$message.success('添加用户成功')
-      //       // 重置表单
-      //       this.$refs.addForm.resetFields()
-      //       // 隐藏对话框
-      //       this.addDialogVisible = false
-      //       // 重新渲染
-      //       this.total++
-      //       this.pagenum = Math.ceil(this.total / this.pagesize)
-      //       this.getUserList()
-      //     } else {
-      //       this.$message.error(msg)
-      //     }
-      //   })
-      // })
-      // try {
-      //   await this.$refs.addForm.validate
-      //   // 发送ajax 请求
-      //   const res = await this.axios.post('users', this.addForm)
-      //   const { status, msg } = res.meta
-      //   if (status === 201) {
-      //     // 提示消息
-      //     this.$message.success('添加用户成功')
-      //     // 重置表单
-      //     this.$refs.addForm.resetFields()
-      //     // 隐藏对话框
-      //     this.addDialogVisible = false
-      //     // 重新渲染
-      //     this.total++
-      //     this.pagenum = Math.ceil(this.total / this.pagesize)
-      //     this.getUserList()
-      //   } else {
-      //     this.$message.error(msg)
-      //   }
-      // } catch {
-      //   return false
-      // }
     },
     showEditDialog (user) {
       this.editDialogVisible = true
@@ -339,25 +299,6 @@ export default {
       } catch (e) {
         return false
       }
-      // this.$refs.editForm.validate(valid => {
-      //   // 发送 ajax 请求
-      //   const { id, email, mobile } = this.editForm
-      //   this.axios.put(`users/${id}`, { email, mobile }).then(res => {
-      //     console.log(11)
-      //     const { status, msg } = res.meta
-      //     if (status === 200) {
-      //       this.$message.success('修改成功')
-      //       // 重置表单
-      //       this.$refs.editForm.resetFields()
-      //       // 关闭模态框
-      //       this.editDialogVisible = false
-      //       // 重新渲染
-      //       this.getUserList()
-      //     } else {
-      //       this.$message.error(msg)
-      //     }
-      //   })
-      // })
     }
   }
 }
