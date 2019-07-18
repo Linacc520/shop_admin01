@@ -64,10 +64,7 @@
     ></el-pagination>
 
     <!-- 对话框 -->
-    <el-dialog
-    title="添加用户"
-    :visible.sync="addDialogVisible"
-    width="40%">
+    <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="40%">
     <el-form ref="addForm" :model="addForm" :rules="rules" label-width="80px" status-icon>
       <el-form-item label="用户名" prop="username">
         <el-input placeholder="请输入用户名" v-model="addForm.username"></el-input>
@@ -88,10 +85,7 @@
     </span>
     </el-dialog>
 
-     <el-dialog
-    title="修改用户"
-    :visible.sync="editDialogVisible"
-    width="40%">
+    <el-dialog title="修改用户" :visible.sync="editDialogVisible" width="40%">
     <el-form ref="editForm" :model="editForm" :rules="rules" label-width="80px" status-icon>
       <el-form-item label="用户名" prop="username">
         <el-tag type="info">{{editForm.username}}</el-tag>
@@ -200,70 +194,118 @@ export default {
       this.pagenum = 1
       this.getUserList()
     },
-    deleteUser (id) {
-      // console.log(id)
-      this.$confirm('亲,你确定要删除吗?', '温馨提示', {
-        type: 'warning'
-      }).then(() => {
-        // 发送ajax请求
-        this.axios.delete(`users/${id}`).then(res => {
-          console.log(res)
-          const { meta } = res
-          if (meta.status === 200) {
-            this.$message.success('删除成功')
-            // 判断,如果当前页面只剩下一条,应该让pagenum -1
-            if (this.tableData.length === 1 && this.pagenum > 1) {
-              this.pagenum--
-            }
-            // 重新渲染
-            this.getUserList()
-          } else {
-            this.$Message.error(meta.msg)
-          }
+    async deleteUser (id) {
+      try {
+        // 等待点击确认按钮
+        await this.$confirm('亲,你确定要删除吗?', '温馨提示', {
+          type: 'warning'
         })
-      }).catch(() => {
-        this.$message('操作取消')
-      })
-    },
-    changeState ({ id, mg_state: state }) {
-      this.axios.put(`users/${id}/state/${state}`).then(res => {
-        const { status, msg } = res.meta
-        if (status === 200) {
-          // 成功
-          this.$message.success('修改状态成功')
-          // 要不要重新渲染
+        // 等待ajax成功结果
+        const { meta } = await this.axios.delete(`users/${id}`)
+        if (meta.status === 200) {
+          this.$message.success('删除成功')
+          console.log('删除成功')
+          // 判断,如果当前页面只剩下一条,应该让pagenum -1
+          if (this.tableData.length === 1 && this.pagenum > 1) {
+            this.pagenum--
+          }
+          // 重新渲染
           this.getUserList()
         } else {
-          this.$message.error(msg)
+          this.$message.error('meta.msg')
+          console.log('删除失败')
         }
-      })
+      } catch (e) {
+        this.$message('取消删除')
+      }
+    },
+    async changeState ({ id, mg_state: state }) {
+      const res = await this.axios.put(`users/${id}/state/${state}`)
+      const { status, msg } = res.meta
+      if (status === 200) {
+        // 成功
+        this.$message.success('修改状态成功')
+        // 要不要重新渲染
+        this.getUserList()
+      } else {
+        this.$message.error(msg)
+      }
     },
     showAddDialog () {
       console.log(1)
       this.addDialogVisible = true
     },
-    addUser () {
-      this.$refs.addForm.validate(valid => {
-        if (!valid) return false
-        // 发送ajax 请求
-        this.axios.post('users', this.addForm).then(res => {
-          const { status, msg } = res.meta
-          if (status === 201) {
-            // 提示消息
-            this.$message.success('添加用户成功')
-            // 重置表单
-            this.$refs.addForm.resetFields()
-            // 隐藏对话框
-            this.addDialogVisible = false
-            // 重新渲染
-            this.total++
-            this.pagenum = Math.ceil(this.total / this.pagesize)
-            this.getUserList()
-          } else {
-            this.$Message.error(msg)
-          }
-        })
-      })
+    async addUser () {
+      // 对表单进行校验
+      try {
+        // 等待表单验证成功
+        await this.$refs.addForm.validate
+        // 发送 ajax 请求
+        // const res = await this.axios.post('user', this.addForm)
+        const res = await this.axios.post('users', this.addForm)
+        // 从成功结果中解构出 status 和 msg
+        const { status, msg } = res.meta
+        if (status === 201) {
+          console.log(12)
+          // 提示消息
+          this.$message.success('添加用户成功')
+          // 重置表单
+          this.$refs.addForm.resetFields()
+          // 隐藏对话框
+          this.addDialogVisible = false
+          // 重新渲染
+          this.total++
+          this.pagenum = Math.ceil(this.total / this.pagesize)
+          this.getUserList()
+        } else {
+          this.$message.error(msg)
+        }
+      } catch (e) {
+        return false
+      }
+      // this.$refs.addForm.validate(valid => {
+      //   if (!valid) return false
+      //   // 发送ajax 请求
+      //   this.axios.post('users', this.addForm).then(res => {
+      //     const { status, msg } = res.meta
+      //     if (status === 201) {
+      //       // 提示消息
+      //       this.$message.success('添加用户成功')
+      //       // 重置表单
+      //       this.$refs.addForm.resetFields()
+      //       // 隐藏对话框
+      //       this.addDialogVisible = false
+      //       // 重新渲染
+      //       this.total++
+      //       this.pagenum = Math.ceil(this.total / this.pagesize)
+      //       this.getUserList()
+      //     } else {
+      //       this.$message.error(msg)
+      //     }
+      //   })
+      // })
+      // try {
+      //   await this.$refs.addForm.validate
+      //   // 发送ajax 请求
+      //   const res = await this.axios.post('users', this.addForm)
+      //   const { status, msg } = res.meta
+      //   if (status === 201) {
+      //     // 提示消息
+      //     this.$message.success('添加用户成功')
+      //     // 重置表单
+      //     this.$refs.addForm.resetFields()
+      //     // 隐藏对话框
+      //     this.addDialogVisible = false
+      //     // 重新渲染
+      //     this.total++
+      //     this.pagenum = Math.ceil(this.total / this.pagesize)
+      //     this.getUserList()
+      //   } else {
+      //     this.$message.error(msg)
+      //   }
+      // } catch {
+      //   return false
+      // }
     },
     showEditDialog (user) {
       this.editDialogVisible = true
@@ -273,27 +315,49 @@ export default {
       // this.editForm.username = user.username
       this.editForm = { ...user }
     },
-    editUser () {
-      this.$refs.editForm.validate(valid => {
-        if (!valid) return false
-        // 发送 ajax 请求
+    async editUser () {
+      // 对表单进行校验
+      try {
+        // 等待表单验证成功
+        await this.$refs.editForm.validate
+        // 从成功数据中解构 id email mobile
         const { id, email, mobile } = this.editForm
-        this.axios.put(`users/${id}`, { email, mobile }).then(res => {
-          console.log(11)
-          const { status, msg } = res.meta
-          if (status === 200) {
-            this.$message.success('修改成功')
-            // 重置表单
-            this.$refs.editForm.resetFields()
-            // 关闭模态框
-            this.editDialogVisible = false
-            // 重新渲染
-            this.getUserList()
-          } else {
-            this.$message.error(msg)
-          }
-        })
-      })
+        // 发送ajax请求
+        const res = await this.axios.put(`users/${id}`, { email, mobile })
+        const { status, msg } = res.meta
+        if (status === 200) {
+          this.$message.success('修改成功')
+          // 重置表单
+          this.$refs.editForm.resetFields()
+          // 关闭模态框
+          this.editDialogVisible = false
+          // 重新渲染
+          this.getUserList()
+        } else {
+          this.$message.error(msg)
+        }
+      } catch (e) {
+        return false
+      }
+      // this.$refs.editForm.validate(valid => {
+      //   // 发送 ajax 请求
+      //   const { id, email, mobile } = this.editForm
+      //   this.axios.put(`users/${id}`, { email, mobile }).then(res => {
+      //     console.log(11)
+      //     const { status, msg } = res.meta
+      //     if (status === 200) {
+      //       this.$message.success('修改成功')
+      //       // 重置表单
+      //       this.$refs.editForm.resetFields()
+      //       // 关闭模态框
+      //       this.editDialogVisible = false
+      //       // 重新渲染
+      //       this.getUserList()
+      //     } else {
+      //       this.$message.error(msg)
+      //     }
+      //   })
+      // })
     }
   }
 }
